@@ -43,6 +43,7 @@ namespace TeX_to_PDF_client
             openFileDialog1.FilterIndex = 2;
             openFileDialog1.RestoreDirectory = true;
 
+
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 try
