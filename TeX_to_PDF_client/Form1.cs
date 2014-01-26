@@ -24,10 +24,11 @@ namespace TeX_to_PDF_client
         delegate void buttonClickerCallback(int corobic);
 
 
-        public Form1()
+        public Form1(Socket socketFd)
         {
             InitializeComponent();
             this.obj = this;
+            this.mySocket = socketFd;
         }
 
         private void setThreadedButton(bool status)
@@ -143,17 +144,25 @@ namespace TeX_to_PDF_client
                     // got file in buffer. Now - save it
                     else
                     {
-                        switch (state.whatdo)
+                        try
                         {
-                            // Ask user to save the file
-                            case 3:
+                            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                            saveFileDialog1.FileName = "unknown.pdf";
 
-                                break;
+                            saveFileDialog1.Filter = "pdf files (*.pdf)|*.pdf";
+                            saveFileDialog1.FilterIndex = 2;
+                            saveFileDialog1.RestoreDirectory = true;
 
-                            // Ask user to save the file
-                            case 5:
-
-                                break;
+                            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                            {
+                                BinaryWriter bWrite = new BinaryWriter(File.Open(saveFileDialog1.FileName, FileMode.OpenOrCreate));
+                                bWrite.Write(state.m_DataBuf, 0, state.m_data_size);
+                            }
+                        }
+                        catch
+                        {
+                            MessageBox.Show("Error saving file.");
+                        }
 
                     }
 
@@ -236,7 +245,7 @@ namespace TeX_to_PDF_client
             {
                 setThreadedButton(false);
 
-                Socket socketFd = mySocket
+                Socket socketFd = mySocket;
                 DataObject state = new DataObject();
                 state.whatdo = corobic;
                 state.m_SocketFd = socketFd;
@@ -284,7 +293,7 @@ namespace TeX_to_PDF_client
                     state.m_DataBuf = clientData2;
                     state.m_data_size = clientData2.Length;
                     //send it
-                    socketFd.BeginSend(clientData, state.m_sent, clientData.Length - state.m_sent, 0, new AsyncCallback(SendCallback), state);
+                    socketFd.BeginSend(clientData2, state.m_sent, clientData2.Length - state.m_sent, 0, new AsyncCallback(SendCallback), state);
                 }
                 else { MessageBox.Show("Unspecified error!"); }
                 
