@@ -31,6 +31,31 @@ namespace TeX_to_PDF_client
             this.mySocket = socketFd;
         }
 
+        // Changed on close functionality (have to close socket and send to server information that we're disconnecting)
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+
+            if (e.CloseReason == CloseReason.WindowsShutDown) return;
+
+            // Confirm user wants to close
+            switch (MessageBox.Show(this, "Are you sure you want to close?", "Closing", MessageBoxButtons.YesNo))
+            {
+                case DialogResult.No:
+                    e.Cancel = true;
+                    break;
+                default:
+                    int a = 7;
+                    byte[] fatality = BitConverter.GetBytes(a);
+                    mySocket.Send(fatality, 0, 4, 0);
+                    System.Threading.Thread.Sleep(100);
+                    mySocket.Shutdown(SocketShutdown.Both);
+                    mySocket.Close();
+                    break;
+            }
+        }
+
+        // Threaded button state setter
         private void setThreadedButton(bool status)
         {
             if (this.button_ss.InvokeRequired)
@@ -49,7 +74,7 @@ namespace TeX_to_PDF_client
         }
 
 
-
+        // Callback for Receive function
         private void ReceiveCallback(IAsyncResult ar)
         {
             try
@@ -152,16 +177,19 @@ namespace TeX_to_PDF_client
                             saveFileDialog1.Filter = "pdf files (*.pdf)|*.pdf";
                             saveFileDialog1.FilterIndex = 2;
                             saveFileDialog1.RestoreDirectory = true;
-
                             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                             {
+                                //File.WriteAllBytes(saveFileDialog1.FileName, state.m_DataBuf);
                                 BinaryWriter bWrite = new BinaryWriter(File.Open(saveFileDialog1.FileName, FileMode.OpenOrCreate));
                                 bWrite.Write(state.m_DataBuf, 0, state.m_data_size);
+                                bWrite.Flush();
+                                bWrite.Close();
                             }
                         }
                         catch
                         {
                             MessageBox.Show("Error saving file.");
+                            setThreadedButton(true);
                         }
 
                     }
@@ -178,7 +206,7 @@ namespace TeX_to_PDF_client
 
 
 
-
+        // Callback for Send function
         private void SendCallback(IAsyncResult ar)
         {
             try

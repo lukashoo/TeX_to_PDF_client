@@ -21,6 +21,7 @@ namespace TeX_to_PDF_client
         delegate void setThreadedButtonCallback(bool status);
         delegate void closeThreadedForm();
 
+        // Constructor
         public Form2()
         {
             InitializeComponent();
@@ -29,6 +30,7 @@ namespace TeX_to_PDF_client
 
         }
 
+        // Threaded close form call
         private void closeForm()
         {
             if (this.InvokeRequired)
@@ -42,6 +44,7 @@ namespace TeX_to_PDF_client
             }
         }
 
+        // Threaded button change status call
         private void setThreadedButton(bool status)
         {
             if ((this.button_login.InvokeRequired) || (this.button_register.InvokeRequired))
@@ -56,6 +59,7 @@ namespace TeX_to_PDF_client
             }
         }
 
+        // callback for Receive function
         private void ReceiveCallback(IAsyncResult ar)
         {
             try
@@ -68,11 +72,13 @@ namespace TeX_to_PDF_client
                 int size = socketFd.EndReceive(ar);
                 state.m_sent = state.m_sent + size;
 
+                /* if didnt send all data - continue sending */
                 if (state.m_sent < state.m_data_size)
                 {
                     /* receive the rest of the data */
                     socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
                 }
+                /* else on success - logged in - close form. on Failure - messagebox */
                 else
                 {
                     /* all the data has arrived */
@@ -94,7 +100,7 @@ namespace TeX_to_PDF_client
 
 
 
-
+        // callback for Send function
         private void SendCallback(IAsyncResult ar)
         {
             try
@@ -242,12 +248,13 @@ namespace TeX_to_PDF_client
             }
         }
 
-        // Funkcja zwracajaca na zewnatrz utworzony w tej foremce socket
+        // return socket (needs to be used by another form for connecting)
         public Socket getSocket()
         {
             return mySocket;
         }
 
+        // return if logging in was successful. (determines if we should open another Form)
         public int getSuccess()
         {
             return success;
