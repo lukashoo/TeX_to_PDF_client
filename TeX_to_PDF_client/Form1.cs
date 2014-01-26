@@ -54,6 +54,8 @@ namespace TeX_to_PDF_client
                         {
                             this.path = Path.GetDirectoryName(openFileDialog1.FileName.ToString());
                             this.filename = Path.GetFileName(openFileDialog1.FileName.ToString());
+                            this.textBox_filename.Text = this.filename;
+                            this.textBox_path.Text = this.path;
                             this.choosen = true;
                         }
                     }
