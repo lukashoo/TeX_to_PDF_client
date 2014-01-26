@@ -79,7 +79,7 @@ namespace TeX_to_PDF_client
                     /* close the window if success, message error if error*/
                     if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
                     { closeForm(); success=1; }
-                    else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1) MessageBox.Show("Wrong username or password!");
+                    else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0) MessageBox.Show("Wrong username or password!");
                     else MessageBox.Show("Communication protocol error.");
                     
 

@@ -48,6 +48,128 @@ namespace TeX_to_PDF_client
         }
 
 
+
+        private void ReceiveCallback(IAsyncResult ar)
+        {
+            try
+            {
+                /* retrieve the SocketStateObject */
+                DataObject state = (DataObject)ar.AsyncState;
+                Socket socketFd = state.m_SocketFd;
+
+                /* sent data */
+                int size = socketFd.EndReceive(ar);
+                state.m_sent = state.m_sent + size;
+
+                if (state.m_sent < state.m_data_size)
+                {
+                    /* receive the rest of the data */
+                    socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                }
+                else
+                {
+                    // got success/failure or filesize
+                    if (state.m_data_size != 4)
+                    {
+                        state.m_sent=0;
+                        switch (state.whatdo)
+                        {
+                            // If success: next 4 bytes: size of file. If failure - MessageBox.
+                            case 3:
+                                // success
+                                if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
+                                {
+                                     // read the filesize
+                                    socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                                }
+                                // failure
+                                else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
+                                { MessageBox.Show("Couldnt convert file."); }
+                                // got filesize
+                                else if (BitConverter.ToInt32(state.m_DataBuf, 0) > 1)
+                                {
+                                    //prepare data buffer and set m_filesize
+                                    state.m_data_size=BitConverter.ToInt32(state.m_DataBuf, 0);
+                                    byte[] dataBuffer = new byte[state.m_data_size];
+                                    state.m_DataBuf = dataBuffer;
+                                    // receive the file
+                                    socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+
+                                }
+                                break;
+
+
+                            // Show MessageBox: success/failure
+                            case 4:
+                                if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
+                                    MessageBox.Show("File successfully saved.");
+                                else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
+                                    MessageBox.Show("Couldnt convert file.");
+                                break;
+                            //  If success: next 4 bytes: size of file. If failure - MessageBox.
+
+                            case 5:
+                                // success
+                                if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
+                                {
+                                    // read the filesize
+                                    socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                                }
+                                // failure
+                                else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
+                                { MessageBox.Show("File does not exist."); }
+                                //got filesize
+                                else if (BitConverter.ToInt32(state.m_DataBuf, 0) > 1)
+                                {
+                                    //prepare data buffer and set m_filesize
+                                    state.m_data_size=BitConverter.ToInt32(state.m_DataBuf, 0);
+                                    byte[] dataBuffer2 = new byte[state.m_data_size];
+                                    state.m_DataBuf = dataBuffer2;
+                                    // receive the file
+                                    socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                                }
+
+                                break;
+
+                            // Show MessageBox: success/failure
+                            case 6:
+                                if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
+                                    MessageBox.Show("File deleted.");
+                                else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
+                                    MessageBox.Show("File does not exist.");
+                                break;
+                        }
+                    }
+                    // got file in buffer. Now - save it
+                    else
+                    {
+                        switch (state.whatdo)
+                        {
+                            // Ask user to save the file
+                            case 3:
+
+                                break;
+
+                            // Ask user to save the file
+                            case 5:
+
+                                break;
+
+                    }
+
+
+                }
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("5Exception:\t\n" + exc.Message.ToString());
+                setThreadedButton(true);
+            }
+        }
+
+
+
+
         private void SendCallback(IAsyncResult ar)
         {
             try
@@ -67,13 +189,34 @@ namespace TeX_to_PDF_client
                 }
                 else
                 {
-                    /* all the data has arrived */
+                    state.m_sent = 0;
+                    state.m_data_size = 4;
+                    byte[] receiveData = new byte[4];
+                    state.m_DataBuf = receiveData;
+                    /* all the data has been sent */
 
-                    setThreadedButton(true);
+                    /* depending on option, do: */
 
-                    /* shutdown and close socket */
-                    socketFd.Shutdown(SocketShutdown.Both);
-                    socketFd.Close();
+                    switch (state.whatdo)
+                    {
+                        // read: first 4 bytes: success/failure, if success: next 4 bytes: size of file, next x bytes the file itself. Prompt user to save the file
+                        case 3:
+                            socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                            break;
+                        // read: first 4 bytes: success/failure. MessageBox - success/failure
+                        case 4:
+                            socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                            break;
+                        // read: first 4 bytes: success/failure. If success: next 4 bytes: size of file, next x bytes the file itself. Prompt user to save the file
+                        case 5:
+                            socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                            break;
+                        // read: first 4 bytes: success/failure. Show MessageBox.
+                        case 6:
+                            socketFd.BeginReceive(state.m_DataBuf, state.m_sent, state.m_data_size - state.m_sent, 0, new AsyncCallback(ReceiveCallback), state);
+                            break;
+                    }
+                    
 
                 }
             }
@@ -100,8 +243,7 @@ namespace TeX_to_PDF_client
                 state.m_sent = 0;
 
                 byte[] whatdo = BitConverter.GetBytes(state.whatdo);
-                byte[] fileNameByte = Encoding.ASCII.GetBytes(filename);
-                byte[] fileNameLength = BitConverter.GetBytes(fileNameByte.Length);
+                
 
                 /* Depending on request prepares suitable byte array to send */
 
@@ -109,6 +251,9 @@ namespace TeX_to_PDF_client
                 if (corobic==3 || corobic==4)
                 {
                     //prepare data (option -> filenamesize -> filesize -> filename -> file)
+                    byte[] fileNameByte = Encoding.ASCII.GetBytes(filename);
+                    byte[] fileNameLength = BitConverter.GetBytes(fileNameByte.Length);
+
                     byte[] fileData = File.ReadAllBytes(Path.Combine(this.path, this.filename));
                     byte[] fileDataLength = BitConverter.GetBytes(fileData.Length);
                     byte[] clientData = new byte[4 + 4 + 4 + fileNameByte.Length + fileData.Length];
@@ -128,10 +273,13 @@ namespace TeX_to_PDF_client
                 else if (corobic == 5 || corobic == 6)
                 {
                     //prepare data (option -> filenamesize -> filename)
-                    byte[] clientData2 = new byte[4 + 4 + fileNameByte.Length];
+                    byte[] fileNameByte2 = Encoding.ASCII.GetBytes(this.textBox_fname.Text.ToString());
+                    byte[] fileNameLength2 = BitConverter.GetBytes(fileNameByte2.Length);
+
+                    byte[] clientData2 = new byte[4 + 4 + fileNameByte2.Length];
                     whatdo.CopyTo(clientData2, 0);
-                    fileNameLength.CopyTo(clientData2, 4);
-                    fileNameByte.CopyTo(clientData2, 8);
+                    fileNameLength2.CopyTo(clientData2, 4);
+                    fileNameByte2.CopyTo(clientData2, 8);
 
                     state.m_DataBuf = clientData2;
                     state.m_data_size = clientData2.Length;
