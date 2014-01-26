@@ -19,7 +19,6 @@ namespace TeX_to_PDF_client
         private int success;
         private Form obj;
         delegate void setThreadedButtonCallback(bool status);
-        delegate void buttonClickerCallback(int corobic);
         delegate void closeThreadedForm();
 
         public Form2()
