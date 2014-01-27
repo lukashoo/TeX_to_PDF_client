@@ -310,24 +310,25 @@ namespace TeX_to_PDF_client
                 // Get/delete specified file from server
                 else if (corobic == 5 || corobic == 6)
                 {
-                    //prepare data (option -> filenamesize -> filename)
-                    byte[] fileNameByte2 = Encoding.ASCII.GetBytes(this.textBox_fname.Text.ToString());
-                    byte[] fileNameLength2 = BitConverter.GetBytes(fileNameByte2.Length);
+                    if (this.textBox_fname.Text.Length > 0)
+                    {
+                        //prepare data (option -> filenamesize -> filename)
+                        byte[] fileNameByte2 = Encoding.ASCII.GetBytes(this.textBox_fname.Text.ToString());
+                        byte[] fileNameLength2 = BitConverter.GetBytes(fileNameByte2.Length);
 
-                    byte[] clientData2 = new byte[4 + 4 + fileNameByte2.Length];
-                    whatdo.CopyTo(clientData2, 0);
-                    fileNameLength2.CopyTo(clientData2, 4);
-                    fileNameByte2.CopyTo(clientData2, 8);
+                        byte[] clientData2 = new byte[4 + 4 + fileNameByte2.Length];
+                        whatdo.CopyTo(clientData2, 0);
+                        fileNameLength2.CopyTo(clientData2, 4);
+                        fileNameByte2.CopyTo(clientData2, 8);
 
-                    state.m_DataBuf = clientData2;
-                    state.m_data_size = clientData2.Length;
-                    //send it
-                    socketFd.BeginSend(clientData2, state.m_sent, clientData2.Length - state.m_sent, 0, new AsyncCallback(SendCallback), state);
+                        state.m_DataBuf = clientData2;
+                        state.m_data_size = clientData2.Length;
+                        //send it
+                        socketFd.BeginSend(clientData2, state.m_sent, clientData2.Length - state.m_sent, 0, new AsyncCallback(SendCallback), state);
+                    }
+                    else { MessageBox.Show("No filename!"); }
+
                 }
-                else { MessageBox.Show("Unspecified error!"); }
-                
-
-
 
                 //Dns.BeginGetHostEntry(this.textBox_ip.Text.ToString(), new AsyncCallback(GetHostEntryCallback), state);
                 setThreadedButton(true);
@@ -340,7 +341,7 @@ namespace TeX_to_PDF_client
         }
 
 
-        
+        // Choose file to save
         private void button1_Click(object sender, EventArgs e)
         {
             Stream myStream = null;

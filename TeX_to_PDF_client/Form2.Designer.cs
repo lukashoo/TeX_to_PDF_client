@@ -61,6 +61,7 @@
             // 
             this.textBox_pass.Location = new System.Drawing.Point(80, 73);
             this.textBox_pass.Name = "textBox_pass";
+            this.textBox_pass.PasswordChar = '*';
             this.textBox_pass.Size = new System.Drawing.Size(100, 20);
             this.textBox_pass.TabIndex = 3;
             // 
@@ -165,7 +166,6 @@
             this.Controls.Add(this.groupBox1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Form2";
-            this.Text = "Form2";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
