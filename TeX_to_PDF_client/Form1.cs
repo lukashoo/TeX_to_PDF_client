@@ -95,7 +95,7 @@ namespace TeX_to_PDF_client
                 else
                 {
                     // got success/failure or filesize
-                    if (state.m_data_size != 4)
+                    if (state.m_data_size == 4)
                     {
                         state.m_sent=0;
                         switch (state.whatdo)
@@ -110,7 +110,7 @@ namespace TeX_to_PDF_client
                                 }
                                 // failure
                                 else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
-                                { MessageBox.Show("Couldnt convert file."); }
+                                { MessageBox.Show("Couldnt convert file."); setThreadedButton(true); }
                                 // got filesize
                                 else if (BitConverter.ToInt32(state.m_DataBuf, 0) > 1)
                                 {
@@ -128,9 +128,9 @@ namespace TeX_to_PDF_client
                             // Show MessageBox: success/failure
                             case 4:
                                 if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
-                                    MessageBox.Show("File successfully saved.");
+                                { MessageBox.Show("File successfully saved."); setThreadedButton(true); }
                                 else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
-                                    MessageBox.Show("Couldnt convert file.");
+                                { MessageBox.Show("Couldnt convert file."); setThreadedButton(true); }
                                 break;
                             //  If success: next 4 bytes: size of file. If failure - MessageBox.
 
@@ -143,7 +143,7 @@ namespace TeX_to_PDF_client
                                 }
                                 // failure
                                 else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
-                                { MessageBox.Show("File does not exist."); }
+                                { MessageBox.Show("File does not exist."); setThreadedButton(true); }
                                 //got filesize
                                 else if (BitConverter.ToInt32(state.m_DataBuf, 0) > 1)
                                 {
@@ -160,9 +160,9 @@ namespace TeX_to_PDF_client
                             // Show MessageBox: success/failure
                             case 6:
                                 if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
-                                    MessageBox.Show("File deleted.");
+                                { MessageBox.Show("File deleted."); setThreadedButton(true); }
                                 else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0)
-                                    MessageBox.Show("File does not exist.");
+                                { MessageBox.Show("File does not exist."); setThreadedButton(true); }
                                 break;
                         }
                     }
@@ -185,6 +185,7 @@ namespace TeX_to_PDF_client
                                 bWrite.Flush();
                                 bWrite.Close();
                             }
+                            setThreadedButton(true);
                         }
                         catch
                         {
