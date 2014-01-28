@@ -152,7 +152,7 @@ namespace TeX_to_PDF_client
                 socketFd.EndConnect(ar);
 
                 /* Prepare Data to send */
-                string mystring = this.textBox_uname.Text + "." + this.textBox_pass.Text;
+                string mystring = this.textBox_uname.Text.ToString() + "." + this.textBox_pass.Text.ToString();
                 byte[] whatdo = BitConverter.GetBytes(state.whatdo);
                 byte[] mystringbyte = Encoding.ASCII.GetBytes(mystring);
                 byte[] mystringLength=BitConverter.GetBytes(mystringbyte.Length);
