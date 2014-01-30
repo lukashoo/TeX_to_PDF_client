@@ -84,8 +84,8 @@ namespace TeX_to_PDF_client
                     /* all the data has arrived */
                     /* close the window if success, message error if error*/
                     if (BitConverter.ToInt32(state.m_DataBuf, 0) == 1)
-                    { closeForm(); success=1; }
-                    /* close socket if error enable button */
+                    { success = 1;  closeForm(); }
+                    /* close socket if error + enable button */
                     else if (BitConverter.ToInt32(state.m_DataBuf, 0) == 0) 
                     {
                         mySocket.Shutdown(SocketShutdown.Both);
@@ -100,7 +100,7 @@ namespace TeX_to_PDF_client
             }
             catch (Exception exc)
             {
-                MessageBox.Show("5Exception:\t\n" + exc.Message.ToString());
+                MessageBox.Show("Exception:\t\n" + exc.Message.ToString());
                 setThreadedButton(true);
             }
         }
@@ -139,7 +139,7 @@ namespace TeX_to_PDF_client
             }
             catch (Exception exc)
             {
-                MessageBox.Show("4Exception:\t\n" + exc.Message.ToString());
+                MessageBox.Show("Exception:\t\n" + exc.Message.ToString());
                 setThreadedButton(true);
             }
         }
@@ -176,7 +176,7 @@ namespace TeX_to_PDF_client
             }
             catch (Exception exc)
             {
-                MessageBox.Show("3Exception:\t\n" + exc.Message.ToString());
+                MessageBox.Show("Exception:\t\n" + exc.Message.ToString());
                 setThreadedButton(true);
             }
         }
@@ -211,11 +211,10 @@ namespace TeX_to_PDF_client
 
                 /* connect to the server */
                 socketFd.BeginConnect(endPoint, new AsyncCallback(ConnectCallback), state);
-                setThreadedButton(true);
             }
             catch (Exception exc)
             {
-                MessageBox.Show("2Exception:\t\n" + exc.Message.ToString());
+                MessageBox.Show("Exception:\t\n" + exc.Message.ToString());
                 setThreadedButton(true);
             }
         }

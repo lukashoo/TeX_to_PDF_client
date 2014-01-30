@@ -22,6 +22,7 @@ namespace TeX_to_PDF_client
         
         delegate void setThreadedButtonCallback(bool status);
         delegate void buttonClickerCallback(int corobic);
+        delegate void SaveFileCallback(DataObject state);
 
 
         public Form1(Socket socketFd)
@@ -54,6 +55,40 @@ namespace TeX_to_PDF_client
                     break;
             }
         }
+
+        // Threaded save file dialog
+        private void saveThreadedFile(DataObject state)
+        {
+            if (this.button_ss.InvokeRequired)
+            {
+                SaveFileCallback saveCallback = new SaveFileCallback(saveThreadedFile);
+                this.obj.Invoke(saveCallback, state);
+            }
+            else
+            {
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                saveFileDialog1.FileName = "unknown.pdf";
+
+                saveFileDialog1.Filter = "pdf files (*.pdf)|*.pdf";
+                saveFileDialog1.FilterIndex = 1;
+                saveFileDialog1.RestoreDirectory = true;
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    //File.WriteAllBytes(saveFileDialog1.FileName, state.m_DataBuf);
+                    BinaryWriter bWrite = new BinaryWriter(File.Open(saveFileDialog1.FileName, FileMode.OpenOrCreate));
+                    bWrite.Write(state.m_DataBuf, 0, state.m_data_size);
+                    bWrite.Flush();
+                    bWrite.Close();
+                }
+                setThreadedButton(true);
+            }
+        }
+
+
+
+
+
+
 
         // Threaded button state setter
         private void setThreadedButton(bool status)
@@ -171,20 +206,7 @@ namespace TeX_to_PDF_client
                     {
                         try
                         {
-                            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-                            saveFileDialog1.FileName = "unknown.pdf";
-
-                            saveFileDialog1.Filter = "pdf files (*.pdf)|*.pdf";
-                            saveFileDialog1.FilterIndex = 2;
-                            saveFileDialog1.RestoreDirectory = true;
-                            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-                            {
-                                //File.WriteAllBytes(saveFileDialog1.FileName, state.m_DataBuf);
-                                BinaryWriter bWrite = new BinaryWriter(File.Open(saveFileDialog1.FileName, FileMode.OpenOrCreate));
-                                bWrite.Write(state.m_DataBuf, 0, state.m_data_size);
-                                bWrite.Flush();
-                                bWrite.Close();
-                            }
+                            saveThreadedFile(state);
                             setThreadedButton(true);
                         }
                         catch
@@ -326,12 +348,12 @@ namespace TeX_to_PDF_client
                         //send it
                         socketFd.BeginSend(clientData2, state.m_sent, clientData2.Length - state.m_sent, 0, new AsyncCallback(SendCallback), state);
                     }
-                    else { MessageBox.Show("No filename!"); }
+                    else { MessageBox.Show("No filename!"); setThreadedButton(true); }
 
                 }
 
                 //Dns.BeginGetHostEntry(this.textBox_ip.Text.ToString(), new AsyncCallback(GetHostEntryCallback), state);
-                setThreadedButton(true);
+                //setThreadedButton(true);
             }
             catch (Exception exc)
             {
